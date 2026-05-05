@@ -1,0 +1,685 @@
+<!--
+  HORARIO LABS - Bloque HTML para Moodle
+  Diseño: filtros por DÍA y por NIVEL.
+  Pegar el contenido completo en un bloque HTML / etiqueta HTML de Moodle.
+  Autocontenido: no requiere CSS ni JS externos.
+-->
+<div id="labs-schedule-root">
+  <style>
+    #labs-schedule-root {
+      --c-a1: #2547d0;
+      --c-a1-bg: #e8edff;
+      --c-a1-soft: #f4f6ff;
+      --c-a2: #6b3fc4;
+      --c-a2-bg: #efe9ff;
+      --c-a2-soft: #f8f5ff;
+      --c-b1: #c8420f;
+      --c-b1-bg: #fde9dc;
+      --c-b1-soft: #fff4ec;
+      --c-text: #1a1a2e;
+      --c-muted: #6b7280;
+      --c-border: #e5e7eb;
+      --c-bg: #ffffff;
+      --c-today: #fff8d4;
+      --c-today-text: #8a6d00;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--c-text);
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 22px;
+      box-sizing: border-box;
+    }
+    #labs-schedule-root *, #labs-schedule-root *::before, #labs-schedule-root *::after { box-sizing: border-box; }
+
+    /* HEADER */
+    .ls-head {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .ls-title {
+      font-size: 44px;
+      font-weight: 800;
+      margin: 0 0 18px 0;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+    .ls-title span { color: #2547d0; }
+
+    /* TODAY BANNER - sticker style with bordered letters */
+    .ls-today {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, #fff5b8 0%, #ffe28a 100%);
+      color: var(--c-today-text);
+      padding: 14px 24px 14px 14px;
+      border-radius: 18px;
+      border: 3px solid #d4a73a;
+      box-shadow: 0 5px 0 #b88a2a, 0 8px 16px rgba(0,0,0,0.08);
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      transition: transform 0.2s;
+    }
+    .ls-today:hover {
+      transform: scale(1.02);
+    }
+    .ls-today-pill {
+      background: var(--c-b1);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 0 #8a2d0a;
+      text-transform: uppercase;
+    }
+    .ls-today-text {
+      font-size: 24px;
+      font-weight: 900;
+      color: #4a3500;
+      text-transform: capitalize;
+      -webkit-text-stroke: 0.5px #b88a2a;
+      letter-spacing: -0.2px;
+    }
+
+    /* NO CLASS TODAY message */
+    .ls-rest-day {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      max-width: 720px;
+      margin: 0 auto 22px auto;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #e8edff 0%, #efe9ff 100%);
+      border: 2px solid #c8d0ff;
+      border-radius: 16px;
+      box-shadow: 0 3px 0 #a8b3e8;
+    }
+    .ls-rest-day-icon {
+      font-size: 38px;
+      flex-shrink: 0;
+    }
+    .ls-rest-day-text { text-align: left; }
+    .ls-rest-day-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #2547d0;
+      margin-bottom: 3px;
+    }
+    .ls-rest-day-sub {
+      font-size: 14px;
+      color: #4a5290;
+      font-weight: 500;
+    }
+
+    /* FILTERS */
+    .ls-filter-block {
+      margin-bottom: 18px;
+    }
+    .ls-filter-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--c-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .ls-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .ls-chip {
+      border: 2px solid var(--c-border);
+      background: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--c-text);
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+    .ls-chip:hover { border-color: #aaa; }
+    .ls-chip.active {
+      background: var(--c-text);
+      color: #fff;
+      border-color: var(--c-text);
+    }
+    .ls-chip.today-chip {
+      background: var(--c-today);
+      border-color: #f0c14b;
+      color: var(--c-today-text);
+    }
+    .ls-chip.today-chip.active {
+      background: #f0c14b;
+      color: #4a3500;
+      border-color: #d4a73a;
+    }
+    .ls-chip-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .ls-chip.lvl-a1 .ls-chip-dot { background: var(--c-a1); }
+    .ls-chip.lvl-a2 .ls-chip-dot { background: var(--c-a2); }
+    .ls-chip.lvl-b1 .ls-chip-dot { background: var(--c-b1); }
+    .ls-chip.lvl-a1.active { background: var(--c-a1); border-color: var(--c-a1); }
+    .ls-chip.lvl-a2.active { background: var(--c-a2); border-color: var(--c-a2); }
+    .ls-chip.lvl-b1.active { background: var(--c-b1); border-color: var(--c-b1); }
+    .ls-chip.lvl-a1.active .ls-chip-dot,
+    .ls-chip.lvl-a2.active .ls-chip-dot,
+    .ls-chip.lvl-b1.active .ls-chip-dot { background: rgba(255,255,255,0.85); }
+
+    /* SUMMARY */
+    .ls-summary {
+      font-size: 15px;
+      color: var(--c-muted);
+      margin: 18px 0 14px 0;
+      padding: 0 4px;
+    }
+    .ls-summary strong { color: var(--c-text); }
+
+    /* RESULTS - horizontal grid layout */
+    .ls-results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+    /* Single-day view: full width, content layouts in columns inside */
+    .ls-results.single-day {
+      grid-template-columns: 1fr;
+    }
+    .ls-day-block {
+      border: 1px solid var(--c-border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .ls-day-block.today {
+      border-color: #f0c14b;
+      box-shadow: 0 0 0 3px rgba(240, 193, 75, 0.2);
+    }
+    .ls-day-header {
+      background: #f9fafb;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--c-border);
+      gap: 4px;
+    }
+    .ls-day-block.today .ls-day-header {
+      background: var(--c-today);
+      color: var(--c-today-text);
+      border-bottom-color: #f0c14b;
+    }
+    .ls-day-header-name {
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      line-height: 1.1;
+    }
+    .ls-day-header-count {
+      font-size: 13px;
+      color: var(--c-muted);
+      font-weight: 600;
+    }
+    /* Single-day header: spread back out horizontally */
+    .ls-results.single-day .ls-day-header {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+    }
+    .ls-day-block.today .ls-today-pill {
+      background: #f0c14b;
+      color: #4a3500;
+      padding: 5px 13px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-left: 12px;
+    }
+    .ls-class-list {
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    /* Single-day: arrange class rows in columns too */
+    .ls-results.single-day .ls-class-list {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    .ls-class-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-areas: "time" "name" "badge";
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 11px;
+      border-left: 5px solid;
+      background: #fff;
+      transition: transform 0.15s;
+    }
+    .ls-class-row:hover { transform: translateX(2px); }
+    .ls-class-row.lvl-a1 { background: var(--c-a1-soft); border-left-color: var(--c-a1); }
+    .ls-class-row.lvl-a2 { background: var(--c-a2-soft); border-left-color: var(--c-a2); }
+    .ls-class-row.lvl-b1 { background: var(--c-b1-soft); border-left-color: var(--c-b1); }
+    .ls-class-time {
+      grid-area: time;
+      font-weight: 800;
+      font-size: 17px;
+      color: var(--c-text);
+      white-space: nowrap;
+    }
+    .ls-class-name {
+      grid-area: name;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text);
+      line-height: 1.3;
+    }
+    .ls-class-name .ls-class-icon {
+      margin-right: 6px;
+      opacity: 0.65;
+      font-size: 15px;
+    }
+    .ls-level-badge {
+      grid-area: badge;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #fff;
+      white-space: nowrap;
+      justify-self: start;
+      margin-top: 4px;
+    }
+    /* Single-day rows: go back to spread horizontal layout since they have width */
+    .ls-results.single-day .ls-class-row {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: "time name badge";
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+    }
+    .ls-results.single-day .ls-level-badge { margin-top: 0; }
+    .ls-results.single-day .ls-class-name { font-size: 15px; }
+    .ls-level-badge.lvl-a1 { background: var(--c-a1); }
+    .ls-level-badge.lvl-a2 { background: var(--c-a2); }
+    .ls-level-badge.lvl-b1 { background: var(--c-b1); }
+
+    /* EMPTY */
+    .ls-empty {
+      text-align: center;
+      padding: 50px 24px;
+      color: var(--c-muted);
+      font-size: 16px;
+      background: #fafafa;
+      border-radius: 16px;
+      border: 1px dashed var(--c-border);
+      grid-column: 1 / -1;
+    }
+    .ls-empty-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+      display: block;
+      opacity: 0.5;
+    }
+
+    .ls-foot {
+      text-align: center;
+      font-size: 14px;
+      color: var(--c-muted);
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--c-border);
+    }
+
+    /* TABLET */
+    @media (max-width: 900px) {
+      .ls-results { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    }
+
+    /* MOBILE */
+    @media (max-width: 600px) {
+      #labs-schedule-root { padding: 12px; }
+      .ls-title { font-size: 28px; }
+      .ls-today { font-size: 15px; padding: 8px 16px; }
+      .ls-day-header-name { font-size: 22px; }
+      .ls-results { grid-template-columns: 1fr; }
+      .ls-results.single-day .ls-class-list { grid-template-columns: 1fr; }
+      .ls-class-row {
+        grid-template-columns: auto 1fr;
+        grid-template-areas: "time name" "time badge";
+        gap: 4px 12px;
+        padding: 12px 14px;
+      }
+      .ls-class-time { grid-area: time; font-size: 15px; }
+      .ls-class-name { grid-area: name; font-size: 14px; }
+      .ls-level-badge { grid-area: badge; justify-self: start; margin-top: 4px; }
+      .ls-chip { padding: 10px 14px; font-size: 14px; }
+      .ls-filter-label { font-size: 12px; }
+    }
+  </style>
+
+  <!-- HEADER -->
+  <div class="ls-head">
+    <h2 class="ls-title">El horario de <span>tus labs</span></h2>
+    <div class="ls-today">
+      <span class="ls-today-pill">HOY</span>
+      <span class="ls-today-text" id="ls-today-text">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- REST DAY MESSAGE (only shows on days without labs) -->
+  <div class="ls-rest-day" id="ls-rest-day" style="display:none">
+    <span class="ls-rest-day-icon">☕</span>
+    <div class="ls-rest-day-text">
+      <div class="ls-rest-day-title" id="ls-rest-day-title">Hoy no hay labs</div>
+      <div class="ls-rest-day-sub" id="ls-rest-day-sub">¡Nos vemos pronto!</div>
+    </div>
+  </div>
+
+  <!-- FILTER: BY DAY -->
+  <div class="ls-filter-block">
+    <span class="ls-filter-label">📅 Filtrar por día</span>
+    <div class="ls-filter-row" id="ls-day-filters">
+      <button class="ls-chip active" data-day="all">Todos los días</button>
+      <button class="ls-chip today-chip" data-day="today">⭐ Hoy</button>
+      <button class="ls-chip" data-day="1">Lunes</button>
+      <button class="ls-chip" data-day="2">Martes</button>
+      <button class="ls-chip" data-day="3">Miércoles</button>
+      <button class="ls-chip" data-day="4">Jueves</button>
+      <button class="ls-chip" data-day="6">Sábado</button>
+    </div>
+  </div>
+
+  <!-- FILTER: BY LEVEL -->
+  <div class="ls-filter-block">
+    <span class="ls-filter-label">🎯 Filtrar por nivel</span>
+    <div class="ls-filter-row" id="ls-level-filters">
+      <button class="ls-chip active" data-level="all">Todos los niveles</button>
+      <button class="ls-chip lvl-a1" data-level="a1"><span class="ls-chip-dot"></span>Estoy empezando (A1)</button>
+      <button class="ls-chip lvl-a2" data-level="a2"><span class="ls-chip-dot"></span>Ya sé un poco (A2)</button>
+      <button class="ls-chip lvl-b1" data-level="b1"><span class="ls-chip-dot"></span>Me defiendo (B1-B2)</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="ls-summary" id="ls-summary"></div>
+
+  <!-- RESULTS -->
+  <div class="ls-results" id="ls-results"></div>
+
+  <div class="ls-foot">⏰ Todos los horarios están en hora de Nueva York (ET)</div>
+</div>
+
+<script>
+(function() {
+  // === DATA ===
+  // day: 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado, 0=Domingo
+  // type: grammar | speaking | reading | pronunciation
+  var classes = [
+    // A1 - Estoy empezando
+    { level: 'a1', day: 1, hour: 19, min: 0,  type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'a1', day: 1, hour: 20, min: 0,  type: 'speaking',      name: 'Speaking' },
+    { level: 'a1', day: 2, hour: 19, min: 0,  type: 'pronunciation', name: 'Pronunciación' },
+    { level: 'a1', day: 3, hour: 19, min: 30, type: 'pronunciation', name: 'Pronunciación' },
+    { level: 'a1', day: 3, hour: 20, min: 30, type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'a1', day: 4, hour: 19, min: 0,  type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'a1', day: 6, hour: 11, min: 0,  type: 'grammar',       name: 'Gramática conversacional' },
+
+    // A2 - Ya sé un poco
+    { level: 'a2', day: 1, hour: 19, min: 30, type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'a2', day: 1, hour: 20, min: 30, type: 'speaking',      name: 'Speaking' },
+    { level: 'a2', day: 2, hour: 19, min: 0,  type: 'pronunciation', name: 'Pronunciación' },
+    { level: 'a2', day: 3, hour: 19, min: 30, type: 'pronunciation', name: 'Pronunciación' },
+    { level: 'a2', day: 3, hour: 20, min: 0,  type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'a2', day: 4, hour: 19, min: 30, type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'a2', day: 6, hour: 9,  min: 0,  type: 'reading',       name: 'Reading' },
+    { level: 'a2', day: 6, hour: 10, min: 0,  type: 'grammar',       name: 'Gramática conversacional' },
+
+    // B1-B2 - Me defiendo
+    { level: 'b1', day: 3, hour: 21, min: 0,  type: 'reading',       name: 'Reading' },
+    { level: 'b1', day: 4, hour: 20, min: 0,  type: 'speaking',      name: 'Speaking' },
+    { level: 'b1', day: 4, hour: 20, min: 30, type: 'grammar',       name: 'Gramática conversacional' },
+    { level: 'b1', day: 6, hour: 12, min: 0,  type: 'speaking',      name: 'Speaking' }
+  ];
+
+  var dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var monthNames = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var levelLabels = { a1: 'A1', a2: 'A2', b1: 'B1-B2' };
+  var levelFullNames = {
+    a1: 'Estoy empezando (A1)',
+    a2: 'Ya sé un poco (A2)',
+    b1: 'Me defiendo (B1-B2)'
+  };
+  var typeIcons = {
+    grammar: '✍️',
+    speaking: '💬',
+    reading: '📖',
+    pronunciation: '🗣️'
+  };
+
+  var state = {
+    day: 'all',
+    level: 'all'
+  };
+
+  // === HELPERS ===
+  function formatTime(h, m) {
+    var period = h >= 12 ? 'p.m.' : 'a.m.';
+    var hh = h % 12;
+    if (hh === 0) hh = 12;
+    var mm = m < 10 ? '0' + m : '' + m;
+    return hh + ':' + mm + ' ' + period;
+  }
+
+  function getTodayInfo() {
+    var d = new Date();
+    return {
+      idx: d.getDay(),
+      name: dayNames[d.getDay()],
+      date: d.getDate(),
+      month: monthNames[d.getMonth()]
+    };
+  }
+
+  function renderTodayBanner() {
+    var t = getTodayInfo();
+    document.getElementById('ls-today-text').textContent =
+      t.name + ' ' + t.date + ' de ' + t.month;
+    renderRestDayMessage();
+  }
+
+  function renderRestDayMessage() {
+    var todayIdx = new Date().getDay();
+    var hasClassesToday = classes.some(function(c) { return c.day === todayIdx; });
+    var box = document.getElementById('ls-rest-day');
+    if (hasClassesToday) {
+      box.style.display = 'none';
+      return;
+    }
+    // Find next day with classes
+    var nextDay = null;
+    for (var i = 1; i <= 7; i++) {
+      var d = (todayIdx + i) % 7;
+      if (classes.some(function(c) { return c.day === d; })) {
+        nextDay = { idx: d, daysAway: i };
+        break;
+      }
+    }
+    var todayName = dayNames[todayIdx].toLowerCase();
+    var titleEl = document.getElementById('ls-rest-day-title');
+    var subEl = document.getElementById('ls-rest-day-sub');
+    titleEl.textContent = 'Hoy es ' + todayName + ' — ¡día de descanso!';
+    if (nextDay) {
+      var nextName = dayNames[nextDay.idx].toLowerCase();
+      var phrase;
+      if (nextDay.daysAway === 1) {
+        phrase = 'Mañana ' + nextName + ' continuamos con tus labs. ¡Aprovecha para repasar!';
+      } else {
+        phrase = 'El próximo lab es el ' + nextName + '. ¡Nos vemos pronto!';
+      }
+      subEl.textContent = phrase;
+    } else {
+      subEl.textContent = '¡Nos vemos pronto!';
+    }
+    box.style.display = 'flex';
+  }
+
+  function filterClasses() {
+    var today = getTodayInfo().idx;
+    return classes.filter(function(c) {
+      var dayOk = false;
+      if (state.day === 'all') dayOk = true;
+      else if (state.day === 'today') dayOk = (c.day === today);
+      else dayOk = (c.day === parseInt(state.day, 10));
+      var levelOk = (state.level === 'all') || (c.level === state.level);
+      return dayOk && levelOk;
+    });
+  }
+
+  function renderResults() {
+    var filtered = filterClasses();
+    var summary = document.getElementById('ls-summary');
+    var results = document.getElementById('ls-results');
+    var todayIdx = getTodayInfo().idx;
+
+    // Summary
+    var dayLabel = state.day === 'all' ? 'todos los días' :
+                   state.day === 'today' ? 'hoy (' + dayNames[todayIdx].toLowerCase() + ')' :
+                   dayNames[parseInt(state.day,10)].toLowerCase();
+    var lvlLabel = state.level === 'all' ? 'todos los niveles' : levelFullNames[state.level];
+    summary.innerHTML = 'Mostrando <strong>' + filtered.length + ' ' +
+      (filtered.length === 1 ? 'clase' : 'clases') + '</strong> · ' +
+      dayLabel + ' · ' + lvlLabel;
+
+    if (filtered.length === 0) {
+      results.innerHTML = '<div class="ls-empty">' +
+        '<span class="ls-empty-icon">🗓️</span>' +
+        'No hay clases para esta combinación de filtros.<br>' +
+        'Prueba con otro día o nivel.</div>';
+      return;
+    }
+
+    // Group by day
+    var byDay = {};
+    filtered.forEach(function(c) {
+      if (!byDay[c.day]) byDay[c.day] = [];
+      byDay[c.day].push(c);
+    });
+    Object.keys(byDay).forEach(function(d) {
+      byDay[d].sort(function(a,b){
+        var ta = a.hour*60 + a.min;
+        var tb = b.hour*60 + b.min;
+        if (ta !== tb) return ta - tb;
+        return a.level.localeCompare(b.level);
+      });
+    });
+
+    var dayKeys = Object.keys(byDay).map(Number).sort(function(a,b) {
+      // Order: Mon, Tue, Wed, Thu, Fri, Sat, Sun (1..6, 0)
+      var order = { 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 0:7 };
+      return order[a] - order[b];
+    });
+
+    // If only one day shown, use single-day layout (full-width with columns inside)
+    if (dayKeys.length === 1) {
+      results.classList.add('single-day');
+    } else {
+      results.classList.remove('single-day');
+    }
+
+    var html = '';
+    dayKeys.forEach(function(d) {
+      var isToday = d === todayIdx;
+      var todayCls = isToday ? ' today' : '';
+      var todayPill = isToday ? '<span class="ls-today-pill">HOY</span>' : '';
+      html += '<div class="ls-day-block' + todayCls + '">';
+      html += '<div class="ls-day-header">' +
+        '<div class="ls-day-header-name">' + dayNames[d] + todayPill + '</div>' +
+        '<div class="ls-day-header-count">' + byDay[d].length + ' ' +
+          (byDay[d].length === 1 ? 'clase' : 'clases') + '</div>' +
+        '</div>';
+      html += '<div class="ls-class-list">';
+      byDay[d].forEach(function(c) {
+        html += '<div class="ls-class-row lvl-' + c.level + '">' +
+          '<div class="ls-class-time">' + formatTime(c.hour, c.min) + '</div>' +
+          '<div class="ls-class-name"><span class="ls-class-icon">' + (typeIcons[c.type]||'') + '</span>' + c.name + '</div>' +
+          '<div class="ls-level-badge lvl-' + c.level + '">' + levelLabels[c.level] + '</div>' +
+          '</div>';
+      });
+      html += '</div></div>';
+    });
+    results.innerHTML = html;
+  }
+
+  function render() {
+    renderTodayBanner();
+    renderResults();
+  }
+
+  // === EVENTS ===
+  document.querySelectorAll('#ls-day-filters .ls-chip').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#ls-day-filters .ls-chip').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      state.day = btn.getAttribute('data-day');
+      try { localStorage.setItem('ls-day', state.day); } catch(e) {}
+      render();
+    });
+  });
+
+  document.querySelectorAll('#ls-level-filters .ls-chip').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#ls-level-filters .ls-chip').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      state.level = btn.getAttribute('data-level');
+      try { localStorage.setItem('ls-level', state.level); } catch(e) {}
+      render();
+    });
+  });
+
+  // Restore prefs
+  try {
+    var sd = localStorage.getItem('ls-day');
+    var sl = localStorage.getItem('ls-level');
+    if (sd) {
+      state.day = sd;
+      document.querySelectorAll('#ls-day-filters .ls-chip').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-day') === sd);
+      });
+    }
+    if (sl) {
+      state.level = sl;
+      document.querySelectorAll('#ls-level-filters .ls-chip').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-level') === sl);
+      });
+    }
+  } catch(e) {}
+
+  render();
+
+  // Re-check "today" every minute in case the page stays open across midnight
+  setInterval(renderTodayBanner, 60000);
+})();
+</script>
